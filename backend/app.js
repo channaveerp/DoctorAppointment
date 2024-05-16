@@ -4,11 +4,11 @@ import cookieParser from 'cookie-parser';
 import fileUpload from 'express-fileupload';
 import { dbconnection } from './database/dbconnections.js';
 import { config } from 'dotenv';
+import { messageRouter } from './routes/messageRoute.js';
 
 config();
 
 export const app = express();
-dbconnection();
 
 app.use(cookieParser);
 app.use(express.urlencoded({ extended: true }));
@@ -20,3 +20,6 @@ app.use(
     tempFileDir: '/temp/',
   })
 );
+debugger;
+app.use('/api/v1/message', messageRouter);
+dbconnection();
