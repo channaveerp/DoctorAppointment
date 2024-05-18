@@ -24,7 +24,7 @@ const messageSchema = new Schema({
     maxLength: [10, 'Phone Number must be contain minimum 10 digits'],
   },
   message: {
-    type: Number,
+    type: String,
     required: true,
     minLength: [10, 'Message must be contain minimum 10 characters'],
   },
