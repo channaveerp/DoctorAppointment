@@ -1,6 +1,7 @@
 import { catchAsyncErrors } from '../middelware/catchAsyncErrors.js';
 import { ErrorHandler } from '../middelware/errorsMiddleware.js';
 import { User } from '../models/useSchema.js';
+import { jwtTokengenerator } from '../utils/jwtTokengenerator.js';
 
 export const patientContorller = catchAsyncErrors(async (req, res, next) => {
   const {
@@ -44,8 +45,41 @@ export const patientContorller = catchAsyncErrors(async (req, res, next) => {
     phone,
   });
   console.log('PatientData', data);
-  return res.status(200).json({
-    success: true,
-    message: 'User created successfully',
-  });
+  //   return res.status(200).json({
+  //     success: true,
+  //     message: 'User created successfully',
+  //   });
+  jwtTokengenerator(uniquePatient, 'patient logged In successfully', 200, res);
+});
+
+// login user
+export const login = catchAsyncErrors(async (req, res, next) => {
+  // take user data
+  const { email, password, confirmPassword, role } = req.body;
+
+  if (!email || !password || !confirmPassword) {
+    return next(new ErrorHandler('Please Enter Details!'));
+  }
+  if (password !== confirmPassword) {
+    return next(new ErrorHandler('Password & Confirm Password Must Be Match!'));
+  }
+  // user user exist or not
+
+  const isuserExist = await User.findOne({ email }).select('+password');
+  if (!isuserExist) {
+    return next(new ErrorHandler('User not found', 400));
+  }
+  const isPasswordMatch = await isuserExist.comparePassword(password);
+  if (!isPasswordMatch) {
+    return next(new ErrorHandler('Invalid Password or Email', 400));
+  }
+  if (role !== isuserExist.role) {
+    return next(new ErrorHandler('User with this role is not found!', 400));
+  }
+
+  //   return res.status(200).json({
+  //     success: true,
+  //     message: 'User Logged In successfully!',
+  //   });
+  jwtTokengenerator(isuserExist, 'patient Loggen In successfully', 200, res);
 });

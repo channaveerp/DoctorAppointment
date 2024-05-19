@@ -78,15 +78,12 @@ userSchema.methods.comparePassword = async function (enterdPassword) {
   return await bcrypt.compare(enterdPassword, this.password);
 };
 
-// jwt token creation method
-userSchema.methods.generateJsonToken = async function () {
-  return jwt.sign(
-    ({ id: this._id },
-    process.env.JWT_SECRET_KEY,
-    {
-      expiresIn: process.env.JWT_EXPIRES,
-    })
-  );
+userSchema.methods.generateJsonToken = function () {
+  // Generate token with user ID as payload
+  const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+    expiresIn: process.env.JWT_EXPIRES,
+  });
+  return token;
 };
 
 // creating model
