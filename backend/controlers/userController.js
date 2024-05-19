@@ -15,6 +15,7 @@ export const patientContorller = catchAsyncErrors(async (req, res, next) => {
     password,
     role,
   } = req.body;
+
   if (
     !firstName ||
     !lastName ||
@@ -26,14 +27,16 @@ export const patientContorller = catchAsyncErrors(async (req, res, next) => {
     !password ||
     !role
   ) {
-    return next(new ErrorHandler('Please Fill data', 400));
-  }
-  const uniquePatient = await User.findOne({ email });
-  if (uniquePatient) {
-    return next(new ErrorHandler('user already exists', 400));
+    return next(new ErrorHandler('Please Fill all data', 400));
   }
 
-  const data = await User.create({
+  // Check if user already exists with the provided email
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return next(new ErrorHandler('User already exists', 400));
+  }
+
+  const newUser = await User.create({
     firstName,
     lastName,
     email,
@@ -44,12 +47,13 @@ export const patientContorller = catchAsyncErrors(async (req, res, next) => {
     nic,
     phone,
   });
-  console.log('PatientData', data);
-  //   return res.status(200).json({
-  //     success: true,
-  //     message: 'User created successfully',
-  //   });
-  jwtTokengenerator(uniquePatient, 'patient logged In successfully', 200, res);
+
+  // Check if user was created successfully
+  if (!newUser) {
+    return next(new ErrorHandler('Failed to create user', 500));
+  }
+
+  jwtTokengenerator(newUser, 'patient Registered In successfully', 200, res);
 });
 
 // login user
@@ -65,21 +69,17 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   }
   // user user exist or not
 
-  const isuserExist = await User.findOne({ email }).select('+password');
-  if (!isuserExist) {
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
     return next(new ErrorHandler('User not found', 400));
   }
-  const isPasswordMatch = await isuserExist.comparePassword(password);
+  const isPasswordMatch = await user.comparePassword(password);
   if (!isPasswordMatch) {
     return next(new ErrorHandler('Invalid Password or Email', 400));
   }
-  if (role !== isuserExist.role) {
+  if (role !== user.role) {
     return next(new ErrorHandler('User with this role is not found!', 400));
   }
 
-  //   return res.status(200).json({
-  //     success: true,
-  //     message: 'User Logged In successfully!',
-  //   });
-  jwtTokengenerator(isuserExist, 'patient Loggen In successfully', 200, res);
+  jwtTokengenerator(user, 'User Logged In successfully!', 200, res);
 });
