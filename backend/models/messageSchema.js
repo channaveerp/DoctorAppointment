@@ -14,8 +14,12 @@ const messageSchema = new Schema({
   },
   email: {
     type: String,
+    unique: true,
     required: true,
-    validator: [validator.isEmail, 'Please enter a valid email!'],
+    validate: {
+      validator: validator.isEmail,
+      message: 'Please enter a valid email!',
+    },
   },
   phone: {
     type: String,

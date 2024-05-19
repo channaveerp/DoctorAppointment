@@ -9,18 +9,15 @@ export const sendMessage = catchAsyncErrors(async (req, res, next) => {
   if (!firstName || !lastName || !email || !phone || !message) {
     return next(new ErrorHandler('Please Fill Form !', 400));
   }
+  // const uniqueEmail = await Message.findOne({ email });
+  // if (uniqueEmail) {
+  //   return next(new ErrorHandler('Email is Already exists!', 400));
+  // }
 
-  try {
-    await Message.create({ firstName, lastName, email, phone, message });
-    return res.status(200).json({
-      success: true,
-      message: 'message send successfully',
-    });
-  } catch (error) {
-    console.error('Error creating message:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
+  await Message.create({ firstName, lastName, email, phone, message });
+
+  return res.status(200).json({
+    success: true,
+    message: 'message send successfully',
+  });
 });
