@@ -1,6 +1,6 @@
 import { catchAsyncErrors } from '../middelware/catchAsyncErrors.js';
 import { ErrorHandler } from '../middelware/errorsMiddleware.js';
-import { User } from '../models/useSchema.js';
+import { User } from '../models/userSchema.js';
 import { jwtTokengenerator } from '../utils/jwtTokengenerator.js';
 
 export const patientContorller = catchAsyncErrors(async (req, res, next) => {
@@ -82,4 +82,43 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   }
 
   jwtTokengenerator(user, 'User Logged In successfully!', 200, res);
+});
+
+export const AddAdmin = catchAsyncErrors(async (req, res, next) => {
+  const { firstName, lastName, phone, email, nic, gender, dob, password } =
+    req.body;
+  if (
+    !firstName ||
+    !lastName ||
+    !phone ||
+    !email ||
+    !nic ||
+    !gender ||
+    !dob ||
+    !password
+  ) {
+    return next(new ErrorHandler('Please Fill all data', 400));
+  }
+  const isAlreadyRegistered = await User.findOne({ email });
+  if (isAlreadyRegistered) {
+    return next(
+      new ErrorHandler(
+        `${isAlreadyRegistered.role} with this email Already Exist!`,
+        400
+      )
+    );
+  }
+  const admin = await User.create({
+    firstName,
+    lastName,
+    phone,
+    email,
+    nic,
+    gender,
+    dob,
+    password,
+    role: 'Admin',
+  });
+
+  jwtTokengenerator(admin, 'Admin Registered  successfully', 200, res);
 });

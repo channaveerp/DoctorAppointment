@@ -32,8 +32,8 @@ const userSchema = new Schema({
   nic: {
     type: String,
     required: true,
-    minLength: [12, 'NIC Number must be contain minimum 10 digits'],
-    maxLength: [12, 'NIC Number must be contain minimum 10 digits'],
+    minLength: [12, 'NIC Number must be contain minimum 12 digits'],
+    maxLength: [12, 'NIC Number must be contain minimum 12 digits'],
   },
   gender: {
     type: String,

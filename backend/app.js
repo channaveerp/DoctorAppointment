@@ -6,7 +6,7 @@ import { dbconnection } from './database/dbconnections.js';
 import { config } from 'dotenv';
 import { messageRouter } from './routes/messageRoute.js';
 import { errorMiddleware } from './middelware/errorsMiddleware.js';
-import { patientRouter } from './routes/patientRegisterRouter.js';
+import { patientRouter } from './routes/usersRouter.js';
 
 config();
 
