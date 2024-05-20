@@ -122,3 +122,51 @@ export const AddAdmin = catchAsyncErrors(async (req, res, next) => {
 
   jwtTokengenerator(admin, 'Admin Registered  successfully', 200, res);
 });
+
+// getAll doctors
+export const getAlldoctors = catchAsyncErrors(async (req, res, next) => {
+  const doctors = await User.find({ role: 'Doctor' });
+  if (doctors) {
+    return res.status(200).json({
+      success: true,
+      doctors,
+    });
+  }
+});
+
+// get users details based on roe
+export const getusersDetails = catchAsyncErrors(async (req, res, next) => {
+  const user = req.user;
+  if (user) {
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  }
+});
+// adminlogout
+export const adminlogout = catchAsyncErrors(async (req, res, next) => {
+  return res
+    .status(200)
+    .cookie('adminToken', null, {
+      httOnly: true,
+      expires: new Date(Date.now()),
+    })
+    .json({
+      success: true,
+      message: 'admin log out successfully ',
+    });
+});
+
+export const patientLogout = catchAsyncErrors(async (req, res, next) => {
+  return res
+    .status(200)
+    .cookie('patientToken', null, {
+      httpOnly: true,
+      expires: new Date(Date.now()),
+    })
+    .json({
+      success: true,
+      message: 'patient log out successfully ',
+    });
+});

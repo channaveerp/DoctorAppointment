@@ -6,7 +6,7 @@ import { dbconnection } from './database/dbconnections.js';
 import { config } from 'dotenv';
 import { messageRouter } from './routes/messageRoute.js';
 import { errorMiddleware } from './middelware/errorsMiddleware.js';
-import { patientRouter } from './routes/usersRouter.js';
+import { router } from './routes/usersRouter.js';
 
 config();
 
@@ -23,7 +23,7 @@ app.use(
   })
 );
 app.use('/api/v1/message', messageRouter);
-app.use('/api/v1/user', patientRouter);
+app.use('/api/v1/user', router);
 
 dbconnection();
 app.use(errorMiddleware);
