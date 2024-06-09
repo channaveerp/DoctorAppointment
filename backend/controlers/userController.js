@@ -2,7 +2,18 @@ import { catchAsyncErrors } from '../middelware/catchAsyncErrors.js';
 import { ErrorHandler } from '../middelware/errorsMiddleware.js';
 import { User } from '../models/userSchema.js';
 import { jwtTokengenerator } from '../utils/jwtTokengenerator.js';
-import cloudinaryres from 'cloudinary';
+// import cloudinaryres from 'cloudinary';
+
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const patientContorller = catchAsyncErrors(async (req, res, next) => {
   const {
@@ -175,12 +186,13 @@ export const patientLogout = catchAsyncErrors(async (req, res, next) => {
 export const addNewDoctor = catchAsyncErrors(async (req, res, next) => {
   // profile picture
   if (!req.files || Object.keys(req.files).length === 0) {
-    return next(new ErrorHandler('doctor avatar require ', 400));
+    return next(new ErrorHandler('Doctor avatar is required', 400));
   }
+
   const { docAvatar } = req.files;
   const allowedFormats = ['image/png', 'image/jpeg', 'image/webp'];
   if (!allowedFormats.includes(docAvatar.mimetype)) {
-    return next(new ErrorHandler('files formate not supported', 400));
+    return next(new ErrorHandler('File format not supported', 400));
   }
 
   const {
@@ -192,7 +204,6 @@ export const addNewDoctor = catchAsyncErrors(async (req, res, next) => {
     gender,
     dob,
     password,
-    role,
     doctorDepartment,
   } = req.body;
 
@@ -205,45 +216,55 @@ export const addNewDoctor = catchAsyncErrors(async (req, res, next) => {
     !gender ||
     !dob ||
     !password ||
-    !role ||
     !doctorDepartment
   ) {
-    return next(new ErrorHandler('Please provide required fields', 400));
+    return next(new ErrorHandler('Please provide all required fields', 400));
   }
-  const isDoctroRegistered = await User.findOne({ email });
-  if (isDoctroRegistered) {
+
+  const isDoctorRegistered = await User.findOne({ email });
+  if (isDoctorRegistered) {
     return next(
       new ErrorHandler(
-        `${isDoctroRegistered.role}  already registered with this email`,
+        `${isDoctorRegistered.role} already registered with this email`,
         400
       )
     );
   }
-  const cloudinaryResponse = await cloudinaryres.uploader.upload(docAvatar);
-  console.log('cloudinaryResponse', cloudinaryResponse);
-  if (!cloudinaryResponse || cloudinaryResponse.error) {
-    // return next(new ErrorHandler(`${cloudinaryResponse.erorr} || `, 400));
-    console.error(cloudinaryResponse.error || 'Error uploading');
-  }
 
-  const doctor = await User.create({
-    firstName,
-    lastName,
-    phone,
-    email,
-    nic,
-    gender,
-    dob,
-    password,
-    role: 'Doctor',
-    doctorDepartment: {
-      public_id: cloudinaryResponse.public_id,
-      url: cloudinaryResponse.secure_url,
-    },
-  });
-  res.status(200).json({
-    success: true,
-    message: 'New doctor was added successfully',
-    doctor,
-  });
+  try {
+    const cloudinaryResponse = await cloudinary.uploader.upload(
+      docAvatar.tempFilePath
+    ); // Ensure docAvatar has the correct path
+    if (!cloudinaryResponse || cloudinaryResponse.error) {
+      console.error(
+        cloudinaryResponse.error || 'Error uploading to Cloudinary'
+      );
+      return next(new ErrorHandler('Error uploading to Cloudinary', 500));
+    }
+
+    const doctor = await User.create({
+      firstName,
+      lastName,
+      phone,
+      email,
+      nic,
+      gender,
+      dob,
+      password,
+      role: 'Doctor',
+      doctorDepartment,
+      docAvatar: {
+        public_id: cloudinaryResponse.public_id,
+        url: cloudinaryResponse.secure_url,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'New doctor was added successfully',
+      doctor,
+    });
+  } catch (error) {
+    return next(new ErrorHandler('Error uploading to Cloudinary', 500));
+  }
 });
