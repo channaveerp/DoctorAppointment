@@ -21,3 +21,12 @@ export const sendMessage = catchAsyncErrors(async (req, res, next) => {
     message: 'message send successfully',
   });
 });
+
+export const getAllmessages = catchAsyncErrors(async (req, res, next) => {
+  const messages = await Message.find();
+  return res.status(200).json({
+    success: true,
+    message: 'All messages get successfully',
+    messages,
+  });
+});
